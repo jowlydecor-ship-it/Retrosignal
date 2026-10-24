@@ -1,0 +1,25 @@
+name: Build OFX bundle (macOS)
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build-macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Récupérer le SDK OpenFX
+        run: git clone --recursive --depth 1 https://github.com/AcademySoftwareFoundation/openfx "$RUNNER_TEMP/openfx"
+      - name: Compiler
+        run: |
+          cmake -S . -B build -DOFX_SDK_DIR="$RUNNER_TEMP/openfx" -DCMAKE_BUILD_TYPE=Release
+          cmake --build build -j
+      - name: Archiver
+        run: ditto -c -k --keepParent build/RetroSignalChain.ofx.bundle RetroSignalChain.ofx.bundle.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RetroSignalChain.ofx.bundle
+          path: RetroSignalChain.ofx.bundle.zip
