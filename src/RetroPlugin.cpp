@@ -71,10 +71,11 @@ public:
 
         const double t = a.time; double fps = src_->getFrameRate(); if (fps <= 0) fps = 24.0;
         rsc::Params P;
-        P.look = look_->getValueAtTime(t); P.intensity = intensity_->getValueAtTime(t); P.quality = quality_->getValueAtTime(t);
+        auto ch = [&](ChoiceParam* c) { int v = 0; c->getValueAtTime(t, v); return v; };
+        P.look = ch(look_); P.intensity = ch(intensity_); P.quality = ch(quality_);
         P.damage = (float)damage_->getValueAtTime(t) / 100.f; P.tapeNoise = (float)tapeNoise_->getValueAtTime(t) / 100.f;
         P.gainOverride = customGain_->getValueAtTime(t); P.gainDB = (float)gain_->getValueAtTime(t); P.saturation = (float)sat_->getValueAtTime(t) / 100.f;
-        P.osdMode = osd_->getValueAtTime(t); P.customDate = custom_->getValueAtTime(t);
+        P.osdMode = ch(osd_); P.customDate = custom_->getValueAtTime(t);
         P.year = year_->getValueAtTime(t); P.month = month_->getValueAtTime(t); P.day = day_->getValueAtTime(t);
         P.hour = hour_->getValueAtTime(t); P.minute = minute_->getValueAtTime(t); P.second = second_->getValueAtTime(t);
         P.seed = seed_->getValueAtTime(t);
@@ -114,15 +115,15 @@ public:
         o->addSupportedComponent(ePixelComponentRGBA); o->setSupportsTiles(false);
 
         PageParamDescriptor* page = d.definePageParam("Controls");
-        auto choice = [&](const char* id, const char* label, std::initializer_list<const char*> opts, int def, ParamDescriptor* parent = nullptr) {
+        auto choice = [&](const char* id, const char* label, std::initializer_list<const char*> opts, int def, GroupParamDescriptor* parent = nullptr) {
             ChoiceParamDescriptor* p = d.defineChoiceParam(id); p->setLabel(label);
             for (auto* o : opts) p->appendOption(o); p->setDefault(def);
             if (parent) p->setParent(*parent); page->addChild(*p); };
-        auto dbl = [&](const char* id, const char* label, double mn, double mx, double def, ParamDescriptor* parent = nullptr) {
+        auto dbl = [&](const char* id, const char* label, double mn, double mx, double def, GroupParamDescriptor* parent = nullptr) {
             DoubleParamDescriptor* p = d.defineDoubleParam(id); p->setLabel(label);
             p->setRange(mn, mx); p->setDisplayRange(mn, mx); p->setDefault(def); p->setAnimates(true);
             if (parent) p->setParent(*parent); page->addChild(*p); };
-        auto integer = [&](const char* id, const char* label, int mn, int mx, int def, ParamDescriptor* parent = nullptr) {
+        auto integer = [&](const char* id, const char* label, int mn, int mx, int def, GroupParamDescriptor* parent = nullptr) {
             IntParamDescriptor* p = d.defineIntParam(id); p->setLabel(label);
             p->setRange(mn, mx); p->setDisplayRange(mn, mx); p->setDefault(def);
             if (parent) p->setParent(*parent); page->addChild(*p); };
